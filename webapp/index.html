@@ -19,12 +19,13 @@
         <div id="app">
             <div class="col-md-12" align="center">
                 <button @click="sendRatings" class="btn btn-primary" type="submit">Enviar puntajes</button>
+                <button @click="unselect" class="btn btn-primary" type="submit">Limpiar</button>
             </div>
             <div v-for="movie in movies" class='question-div col-md-4'>
                 <h3 class='question-desc'>{{ movie['name'] }}</h3>
                 <img :src="movie.img_url" height="209" width="140"/>
                 <p v-for="option in options">
-                    <input @change="addRating" :name="'mid-' + movie.id" type="radio" :value="option.value"/>
+                    <input :checked="movie.id in ratings" v-model="ratings[movie.id]" :name="'mid-' + movie.id" type="radio" :value="option.value"/>
                     {{ option.value + ' - ' + option.description }}
                 </p>
             </div>

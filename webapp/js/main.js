@@ -15,16 +15,19 @@ var app = new Vue({
     },
     'methods': {
         sendRatings: function(){
-            axios
-            .post(API_URL + '/rating', {ratings: this.ratings})
-            .then(response => {
-                console.log(response)
-            });
+            if(Object.keys(this.movies).length == Object.keys(this.ratings).length) {
+                axios
+                .post(API_URL + '/rating', {ratings: this.ratings})
+                .then(response => {
+                    alert("Puntajes enviados")
+                    this.ratings = {}
+                });
+            } else {
+                alert("Asigna todo los puntajes")
+            }
         },
-        addRating: function(event) {
-            movieId = event.srcElement.name.split('-')[1]
-            movieRating = event.srcElement.value
-            this.ratings[movieId] = movieRating
+        unselect: function(event) {
+            this.ratings = {}
         }
     },
     mounted () {
@@ -32,9 +35,6 @@ var app = new Vue({
         .get(API_URL + '/movie')
         .then(response => {
             this.movies = eval(response.data)
-            this.movies.forEach(element => {
-                this.ratings[element.id] = 0
-            });
         });
     }
 })
