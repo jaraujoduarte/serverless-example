@@ -6,6 +6,6 @@ output "apigw_restapi_id" {
   value = aws_api_gateway_rest_api.serverless_example.id
 }
 
-output "apigw_restapi_proxy_resource_id" {
-  value = aws_api_gateway_resource.serverless_example_proxy.id
+output "apigw_restapi_root_resource_id" {
+  value = aws_api_gateway_rest_api.serverless_example.root_resource_id
 }

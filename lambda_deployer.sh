@@ -8,6 +8,9 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 cd .venv/lib/${PYTHON_VERSION}/site-packages/
-zip -r9 ../../../../function.zip .
+zip -r9 ../../../../${LAMBDA_MAIN}.zip .
 cd ../../../../
-zip -g function.zip ${LAMBDA_MAIN}
+zip -g ${LAMBDA_MAIN}.zip ${LAMBDA_MAIN}.py
+
+cd deploy
+terraform apply -auto-approve -target=aws_lambda_function.${LAMBDA_MAIN}_lambda

@@ -3,13 +3,28 @@ provider "aws" {
   region  = "us-east-1"
 }
 
-resource "aws_dynamodb_table" "movies" {
+resource "aws_dynamodb_table" "movie" {
   name         = "movie"
   billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "name"
+  hash_key     = "id"
 
   attribute {
-    name = "name"
+    name = "id"
+    type = "N"
+  }
+
+  tags = {
+    group = "serverless-example"
+  }
+}
+
+resource "aws_dynamodb_table" "rating" {
+  name         = "rating"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "id"
+
+  attribute {
+    name = "id"
     type = "S"
   }
 
@@ -105,22 +120,5 @@ resource "aws_api_gateway_rest_api" "serverless_example" {
 
   endpoint_configuration {
     types = ["REGIONAL"]
-  }
-}
-
-resource "aws_api_gateway_resource" "serverless_example_proxy" {
-  rest_api_id = aws_api_gateway_rest_api.serverless_example.id
-  parent_id   = aws_api_gateway_rest_api.serverless_example.root_resource_id
-  path_part   = "{proxy+}"
-}
-
-resource "aws_api_gateway_method" "serverless_example_proxy_any" {
-  rest_api_id   = "${aws_api_gateway_rest_api.serverless_example.id}"
-  resource_id   = "${aws_api_gateway_resource.serverless_example_proxy.id}"
-  http_method   = "ANY"
-  authorization = "NONE"
-
-  request_parameters = {
-    "method.request.path.proxy" = true
   }
 }

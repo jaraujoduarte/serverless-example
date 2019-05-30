@@ -1,15 +1,38 @@
+import decimal
 import json
 import logging
+import uuid
+
 import boto3
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 
-def list_movies():
-    return 200, {}
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return str(o)
+        return super(DecimalEncoder, self).default(o)
 
-def submit_rating(ratings):
+def list_movies(**kwargs):
+    table = dynamodb.Table('movie')
+    items = json.dumps(table.scan()['Items'], cls=DecimalEncoder)
+    return 200, items
+
+def submit_rating(**kwargs):
+    ratings = json.loads(kwargs['body'])['ratings']
+    logger.info(ratings)
+    table = dynamodb.Table('rating')
+
+    for k, v in ratings.items():
+        table.put_item(
+            Item={
+                'id': str(uuid.uuid1()),
+                'move_id': k,
+                'value': v
+            }
+        )
     return 200, "Rating submitted"
 
 function_map = {
@@ -22,8 +45,10 @@ function_map = {
 }
 
 def lambda_handler(event, context):
-    logger.info("Executing lambda handler")
+    logger.info("Executing api lambda handler")
     calling_function = None
+    response_code = 200
+    response_body = None
 
     try:
         calling_function = function_map[event['httpMethod']][event['path']]
@@ -33,8 +58,8 @@ def lambda_handler(event, context):
 
     try:
         if calling_function:
-            response_code, response_body = calling_function(body=event['body'],
-                                                **event['queryStringParameters'])
+            query_params = event.get('queryStringParameters', {})
+            response_code, response_body = calling_function(params=query_params, body=event['body'])
     except Exception as e:
         logger.exception(e)
         response_code, response_body = 500, e
@@ -44,7 +69,7 @@ def lambda_handler(event, context):
         "headers": {
             "Access-Control-Allow-Origin": "*",
         },
-        "body": response_body
+        "body": str(response_body)
     }
 
     return response
